@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from django.template.defaultfilters import slugify
-from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 
-from south.modelsinspector import add_introspection_rules
 from .settings import *
 
 
@@ -49,7 +47,7 @@ class Base(models.Model):
     class Meta:
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
@@ -186,5 +184,5 @@ class Timezone(models.Model):
     class Meta:
         ordering = ['name']
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{0} (GMT{1})".format(self.name, self.gmt_offset)

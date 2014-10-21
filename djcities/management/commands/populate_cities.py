@@ -9,7 +9,7 @@ import zipfile
 import requests
 
 from django.core.management.base import BaseCommand
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.db import transaction, IntegrityError, connection
 
 from ...models import City, Country, Region, Timezone
@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
     def prepare(self):
         if not os.path.exists(local_settings.TMPDATA_DIR):
-            print "Creating temporal data directory: {0}".format(local_settings.TMPDATA_DIR)
+            print("Creating temporal data directory: {0}".format(local_settings.TMPDATA_DIR))
             os.mkdir(local_settings.TMPDATA_DIR)
 
     def download(self, name, sourcedata, dest_path):
@@ -44,12 +44,12 @@ class Command(BaseCommand):
                 f.write(zfile.read(filename))
 
     def download_datafiles(self):
-        for name, sourcedata in local_settings.SOURCES.iteritems():
-            print "Downloading: {0} from {1}".format(name, sourcedata['source'])
+        for name, sourcedata in local_settings.SOURCES.items():
+            print("Downloading: {0} from {1}".format(name, sourcedata['source']))
 
             dest_path = os.path.join(local_settings.TMPDATA_DIR, sourcedata['dest'])
             if os.path.exists(dest_path):
-                print "File exists, skiping."
+                print("File exists, skiping.")
                 continue
 
             if sourcedata['source'].endswith(".zip"):
@@ -71,7 +71,7 @@ class Command(BaseCommand):
 
                 yield [e.strip() for e in line.split('\t')]
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def handle(self, *args, **options):
 
         if "extra_sql" in options:
@@ -85,7 +85,7 @@ class Command(BaseCommand):
                     for line in f:
                         if not line or line.strip().startswith('--'):
                             continue
-                        print "ex: {0}".format(line.strip())
+                        print("ex: {0}".format(line.strip()))
                         cursor.execute(line)
 
                 cursor.close()
@@ -107,7 +107,7 @@ class Command(BaseCommand):
 
         for name, sourcedata in sorted(local_settings.SOURCES.items(), key=lambda x: x[1]['sort']):
             dest_path = os.path.join(local_settings.TMPDATA_DIR, sourcedata['dest'])
-            print "Parsing: {0} - {1}".format(name, dest_path)
+            print("Parsing: {0} - {1}".format(name, dest_path))
 
             _parse_method = getattr(self, "{0}_import".format(name))
 
@@ -135,10 +135,10 @@ class Command(BaseCommand):
 
     def country_import(self, items):
         geoname_id = items[16]
-        code2 = force_unicode(items[0])
-        code3 = force_unicode(items[1])
-        name = force_unicode(items[4])
-        continent = force_unicode(items[8])
+        code2 = force_text(items[0])
+        code3 = force_text(items[1])
+        name = force_text(items[4])
+        continent = force_text(items[8])
 
         if self._options['country']:
             if code2.lower() != self._options['country'].lower():
@@ -167,7 +167,7 @@ class Command(BaseCommand):
         if len(items) < 4:
             return
 
-        items = [force_unicode(x) for x in items]
+        items = [force_text(x) for x in items]
 
         raw_code = items[0].split(".")
         name = items[2]
@@ -207,9 +207,9 @@ class Command(BaseCommand):
             transaction.savepoint_rollback(sem)
 
     def subregion_import(self, items):
-        raw_code = force_unicode(items[0]).split(".")
-        name = force_unicode(items[2])
-        name_std = force_unicode(items[1])
+        raw_code = force_text(items[0]).split(".")
+        name = force_text(items[2])
+        name_std = force_text(items[1])
         geoname_id = items[3]
 
         country_code2 = raw_code[0]
@@ -251,9 +251,9 @@ class Command(BaseCommand):
 
     def city_import(self, items):
         geoname_id = items[0]
-        name = force_unicode(items[2])
-        name_std = force_unicode(items[1])
-        alternate_names = force_unicode(items[3])
+        name = force_text(items[2])
+        name_std = force_text(items[1])
+        alternate_names = force_text(items[3])
         country_code2 = items[8]
         region_geoname_code = items[10]
         subregion_geoname_code = items[11]
